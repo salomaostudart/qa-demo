@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador de Tarefas — QA Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #1a1a2e; color: #eee; padding: 2rem; max-width: 800px; margin: 0 auto; }
+    h1 { color: #e94560; margin-bottom: 1.5rem; }
+
+    .form { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+    .form input, .form button { padding: 0.75rem; border: none; border-radius: 6px; font-size: 1rem; }
+    .form input { flex: 1; background: #16213e; color: #eee; }
+    .form input::placeholder { color: #666; }
+    .form button { background: #e94560; color: #fff; cursor: pointer; font-weight: bold; }
+    .form button:hover { background: #c73652; }
+
+    .stats { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+    .stat { background: #16213e; padding: 0.75rem 1.25rem; border-radius: 6px; }
+    .stat-number { font-size: 1.5rem; font-weight: bold; color: #e94560; }
+    .stat-label { font-size: 0.8rem; color: #888; }
+
+    .task { background: #16213e; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 1rem; }
+    .task.concluida { opacity: 0.5; }
+    .task-title { flex: 1; font-size: 1.1rem; }
+    .task.concluida .task-title { text-decoration: line-through; }
+    .task-status { padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; cursor: pointer; border: none; color: #fff; }
+    .task-status.pendente { background: #e94560; }
+    .task-status.em_andamento { background: #f59e0b; }
+    .task-status.concluida { background: #10b981; }
+    .task-delete { background: none; border: none; color: #666; cursor: pointer; font-size: 1.2rem; }
+    .task-delete:hover { color: #e94560; }
+
+    .empty { text-align: center; color: #666; padding: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>Gerenciador de Tarefas</h1>
+
+  <div class="form">
+    <input type="text" id="taskInput" placeholder="Nova tarefa..." data-test="task-input">
+    <button id="addBtn" data-test="add-button">Adicionar</button>
+  </div>
+
+  <div class="stats" id="stats" data-test="stats"></div>
+  <div id="taskList" data-test="task-list"></div>
+
+  <script>
+    const API = '/api/tasks'
+    const taskInput = document.getElementById('taskInput')
+    const addBtn = document.getElementById('addBtn')
+    const taskList = document.getElementById('taskList')
+    const stats = document.getElementById('stats')
+
+    const nextStatus = { pendente: 'em_andamento', em_andamento: 'concluida', concluida: 'pendente' }
+    const statusLabel = { pendente: 'Pendente', em_andamento: 'Em andamento', concluida: 'Concluida' }
+
+    async function loadTasks() {
+      const res = await fetch(API)
+      const tasks = await res.json()
+      renderStats(tasks)
+      renderTasks(tasks)
+    }
+
+    function renderStats(tasks) {
+      const total = tasks.length
+      const pendentes = tasks.filter(t => t.status === 'pendente').length
+      const concluidas = tasks.filter(t => t.status === 'concluida').length
+      stats.innerHTML = `
+        <div class="stat"><div class="stat-number" data-test="stat-total">${total}</div><div class="stat-label">Total</div></div>
+        <div class="stat"><div class="stat-number" data-test="stat-pendentes">${pendentes}</div><div class="stat-label">Pendentes</div></div>
+        <div class="stat"><div class="stat-number" data-test="stat-concluidas">${concluidas}</div><div class="stat-label">Concluidas</div></div>
+      `
+    }
+
+    function renderTasks(tasks) {
+      if (tasks.length === 0) {
+        taskList.innerHTML = '<div class="empty" data-test="empty-message">Nenhuma tarefa cadastrada</div>'
+        return
+      }
+      taskList.innerHTML = tasks.map(t => `
+        <div class="task ${t.status}" data-test="task-item" data-id="${t.id}">
+          <span class="task-title" data-test="task-title">${t.title}</span>
+          <button class="task-status ${t.status}" data-test="task-status" onclick="toggleStatus(${t.id}, '${t.status}')">${statusLabel[t.status]}</button>
+          <button class="task-delete" data-test="task-delete" onclick="deleteTask(${t.id})">✕</button>
+        </div>
+      `).join('')
+    }
+
+    async function addTask() {
+      const title = taskInput.value.trim()
+      if (!title) return
+      await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+      })
+      taskInput.value = ''
+      loadTasks()
+    }
+
+    async function toggleStatus(id, current) {
+      await fetch(`${API}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus[current] })
+      })
+      loadTasks()
+    }
+
+    async function deleteTask(id) {
+      await fetch(`${API}/${id}`, { method: 'DELETE' })
+      loadTasks()
+    }
+
+    addBtn.addEventListener('click', addTask)
+    taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask() })
+    loadTasks()
+  </script>
+</body>
+</html>

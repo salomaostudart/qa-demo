@@ -1,0 +1,132 @@
+{
+	"info": {
+		"name": "QA Demo — Testes de API",
+		"description": "Testes da API REST do Gerenciador de Tarefas.\nBase URL: http://localhost:3000/api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GET — Listar tarefas (vazio)",
+			"request": {
+				"method": "GET",
+				"url": "http://localhost:3000/api/tasks"
+			},
+			"event": [{ "listen": "test", "script": { "exec": [
+				"pm.test('Status 200', () => pm.response.to.have.status(200));",
+				"pm.test('Retorna array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+			]}}]
+		},
+		{
+			"name": "POST — Criar tarefa",
+			"request": {
+				"method": "POST",
+				"url": "http://localhost:3000/api/tasks",
+				"header": [{ "key": "Content-Type", "value": "application/json" }],
+				"body": { "mode": "raw", "raw": "{ \"title\": \"Tarefa via Postman\", \"description\": \"Criada pelo teste de API\" }" }
+			},
+			"event": [{ "listen": "test", "script": { "exec": [
+				"pm.test('Status 201 (Created)', () => pm.response.to.have.status(201));",
+				"pm.test('Retorna titulo correto', () => {",
+				"    pm.expect(pm.response.json().title).to.eql('Tarefa via Postman');",
+				"});",
+				"pm.test('Status padrao e pendente', () => {",
+				"    pm.expect(pm.response.json().status).to.eql('pendente');",
+				"});",
+				"pm.test('Retorna ID', () => {",
+				"    pm.expect(pm.response.json().id).to.be.a('number');",
+				"    pm.collectionVariables.set('taskId', pm.response.json().id);",
+				"});"
+			]}}]
+		},
+		{
+			"name": "GET — Buscar tarefa por ID",
+			"request": {
+				"method": "GET",
+				"url": "http://localhost:3000/api/tasks/{{taskId}}"
+			},
+			"event": [{ "listen": "test", "script": { "exec": [
+				"pm.test('Status 200', () => pm.response.to.have.status(200));",
+				"pm.test('Titulo correto', () => {",
+				"    pm.expect(pm.response.json().title).to.eql('Tarefa via Postman');",
+				"});"
+			]}}]
+		},
+		{
+			"name": "PUT — Atualizar tarefa",
+			"request": {
+				"method": "PUT",
+				"url": "http://localhost:3000/api/tasks/{{taskId}}",
+				"header": [{ "key": "Content-Type", "value": "application/json" }],
+				"body": { "mode": "raw", "raw": "{ \"title\": \"Tarefa atualizada\", \"status\": \"em_andamento\" }" }
+			},
+			"event": [{ "listen": "test", "script": { "exec": [
+				"pm.test('Status 200', () => pm.response.to.have.status(200));",
+				"pm.test('Titulo atualizado', () => {",
+				"    pm.expect(pm.response.json().title).to.eql('Tarefa atualizada');",
+				"});",
+				"pm.test('Status atualizado', () => {",
+				"    pm.expect(pm.response.json().status).to.eql('em_andamento');",
+				"});"
+			]}}]
+		},
+		{
+			"name": "DELETE — Remover tarefa",
+			"request": {
+				"method": "DELETE",
+				"url": "http://localhost:3000/api/tasks/{{taskId}}"
+			},
+			"event": [{ "listen": "test", "script": { "exec": [
+				"pm.test('Status 200', () => pm.response.to.have.status(200));",
+				"pm.test('Mensagem de confirmacao', () => {",
+				"    pm.expect(pm.response.json().message).to.eql('Tarefa removida');",
+				"});"
+			]}}]
+		},
+		{
+			"name": "GET — Tarefa inexistente (404)",
+			"request": {
+				"method": "GET",
+				"url": "http://localhost:3000/api/tasks/99999"
+			},
+			"event": [{ "listen": "test", "script": { "exec": [
+				"pm.test('Status 404', () => pm.response.to.have.status(404));",
+				"pm.test('Mensagem de erro', () => {",
+				"    pm.expect(pm.response.json().error).to.eql('Tarefa nao encontrada');",
+				"});"
+			]}}]
+		},
+		{
+			"name": "POST — Titulo vazio (400)",
+			"request": {
+				"method": "POST",
+				"url": "http://localhost:3000/api/tasks",
+				"header": [{ "key": "Content-Type", "value": "application/json" }],
+				"body": { "mode": "raw", "raw": "{ \"title\": \"\" }" }
+			},
+			"event": [{ "listen": "test", "script": { "exec": [
+				"pm.test('Status 400 (Bad Request)', () => pm.response.to.have.status(400));",
+				"pm.test('Mensagem de erro', () => {",
+				"    pm.expect(pm.response.json().error).to.eql('Titulo e obrigatorio');",
+				"});"
+			]}}]
+		},
+		{
+			"name": "POST — Sem body (400)",
+			"request": {
+				"method": "POST",
+				"url": "http://localhost:3000/api/tasks",
+				"header": [{ "key": "Content-Type", "value": "application/json" }],
+				"body": { "mode": "raw", "raw": "{}" }
+			},
+			"event": [{ "listen": "test", "script": { "exec": [
+				"pm.test('Status 400', () => pm.response.to.have.status(400));",
+				"pm.test('Erro de validacao', () => {",
+				"    pm.expect(pm.response.json().error).to.include('obrigatorio');",
+				"});"
+			]}}]
+		}
+	],
+	"variable": [
+		{ "key": "taskId", "value": "" }
+	]
+}

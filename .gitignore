@@ -1,0 +1,7 @@
+node_modules/
+app/tasks.db
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+test-results/
+playwright-report/
