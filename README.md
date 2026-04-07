@@ -2,6 +2,8 @@
 
 Projeto de demonstracao de QA testando uma unica aplicacao com 4 ferramentas diferentes.
 
+**[Demo online](https://salomaostudart.github.io/qa-demo/)**
+
 ## A Aplicacao
 
 **Gerenciador de Tarefas** — CRUD completo com API REST + frontend.
@@ -9,6 +11,7 @@ Projeto de demonstracao de QA testando uma unica aplicacao com 4 ferramentas dif
 - **Backend:** Node.js + Express
 - **Banco:** SQLite (com scripts PostgreSQL equivalentes)
 - **Frontend:** HTML + CSS + JavaScript vanilla
+- **Deploy:** GitHub Pages (frontend com localStorage) | Local (API + banco)
 
 ## Ferramentas de Teste
 
@@ -84,14 +87,24 @@ npx playwright test
 # 6. SQL: executar scripts de sql/ no banco de sua escolha
 ```
 
+## Dois modos de execucao
+
+| Modo | Como | O que funciona |
+|---|---|---|
+| **Online** (GitHub Pages) | [salomaostudart.github.io/qa-demo](https://salomaostudart.github.io/qa-demo/) | Frontend com localStorage |
+| **Local** | `node app/server.js` → `localhost:3000` | Frontend + API + banco (Cypress, Playwright, Postman, SQL) |
+
+O frontend detecta automaticamente se a API esta disponivel. Se nao, usa localStorage.
+
 ## Estrutura
 
 ```
 qa-demo/
+  index.html                    — Frontend (GitHub Pages)
   app/                          — Aplicacao
     server.js                   — API REST (Express)
     database.js                 — Configuracao do banco (SQLite)
-    public/index.html           — Frontend
+    public/index.html           — Frontend (servido pelo Express)
   cypress/                      — Testes E2E (Cypress)
     e2e/tasks.cy.js
   playwright/                   — Testes E2E (Playwright)
