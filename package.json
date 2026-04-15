@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app/server.js",
+    "test": "playwright test",
+    "test:cypress": "cypress run",
+    "test:playwright": "playwright test",
+    "test:all": "npm run test:playwright && npm run test:cypress"
   },
   "keywords": [],
   "author": "",
