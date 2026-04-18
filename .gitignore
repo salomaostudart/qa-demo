@@ -5,3 +5,15 @@ cypress/videos/
 cypress/downloads/
 test-results/
 playwright-report/
+
+# Environments
+.env
+.env.*
+!.env.example
+
+# Secrets
+*.pem
+*.key
+*.secret
+credentials.json
+cypress.env.json
